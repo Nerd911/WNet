@@ -34,17 +34,9 @@ parser.add_argument('--input_folder', metavar='f', default=None, type=str,
 parser.add_argument('--output_folder', metavar='of', default=None, type=str, 
                     help='folder of output images')
 
-vertical_sobel=torch.nn.Parameter(torch.from_numpy(np.array([[[[1,  0,  -1], 
-                                            [1,  0,  -1], 
-                                            [1,  0,  -1]]]])).float(), requires_grad=False)
-
-horizontal_sobel=torch.nn.Parameter(torch.from_numpy(np.array([[[[1,   1,  1], 
-                                              [0,   0,  0], 
-                                              [-1 ,-1, -1]]]])).float(), requires_grad=False)
-
+softmax = nn.Softmax2d()
 
 def train_op(model, optimizer, input, k, img_shape, psi=0.5):
-    softmax = nn.Softmax2d()
     enc = model(input, returns='enc') # The output of the UEnc is a normalized 224 × 224 × K dense prediction.
     n_cut_loss=soft_n_cut_loss(input, softmax(enc), k, img_shape)
     n_cut_loss.backward() 
@@ -58,10 +50,7 @@ def train_op(model, optimizer, input, k, img_shape, psi=0.5):
     return (model, n_cut_loss, rec_loss)
 
 def reconstruction_loss(x, x_prime):
-    # binary_cross_entropy = F.binary_cross_entropy(x_prime, x, reduction='sum')
-    # return binary_cross_entropy
-    #m = nn.Sigmoid()
-    criterionIdt = torch.nn.L1Loss() #prob l2 or mseless here
+    criterionIdt = torch.nn.MSELoss()
     rec_loss = criterionIdt(x_prime, x)
     return rec_loss
 
@@ -93,7 +82,7 @@ def main():
     wnet = WNet.WNet(k)
     if(CUDA):
         wnet = wnet.cuda()
-    learning_rate = 0.03
+    learning_rate = 0.003
     optimizer = torch.optim.SGD(wnet.parameters(), lr=learning_rate)
     # transforms.CenterCrop(224),
     transform = transforms.Compose([transforms.Resize(img_size),
@@ -101,7 +90,7 @@ def main():
     dataset = datasets.ImageFolder(args.input_folder, transform=transform)
 
     # Train 1 image set batch size=1 and set shuffle to False
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=True)
 
     # Run for every epoch
     for epoch in range(args.epochs):

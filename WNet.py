@@ -33,11 +33,11 @@ class Block(nn.Module):
         
         
         self.relu1 = nn.ReLU()
-        self.dropout1 = nn.Dropout(0.15) 
+        self.dropout1 = nn.Dropout(0.65) 
         self.batchnorm1=nn.BatchNorm2d(out_filters)
         
         self.relu2 = nn.ReLU()
-        self.dropout2 = nn.Dropout(0.15) 
+        self.dropout2 = nn.Dropout(0.65) 
         self.batchnorm2=nn.BatchNorm2d(out_filters)
 
     def forward(self, x):
