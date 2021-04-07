@@ -17,15 +17,22 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision import datasets, transforms
 from scipy.special import softmax
-import WNet
 import matplotlib.pyplot as plt
+
+import sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir) 
+import WNet
+from utils.crf import dense_crf
+
 
 parser = argparse.ArgumentParser(description='PyTorch Unsupervised Segmentation with WNet')
 parser.add_argument('--model', metavar='C', default="model", type=str, 
                     help='name of the saved model')
 parser.add_argument('--image', metavar='C', default=None, type=str, 
                     help='path to the image')
-parser.add_argument('--squeeze', metavar='K', default=20, type=int, 
+parser.add_argument('--squeeze', metavar='K', default=4, type=int, 
                     help='Depth of squeeze layer')
 
 def show_image(image):
@@ -53,9 +60,8 @@ def main():
     x = transform(image)[None, :, :, :]
 
     enc, dec = model(x)
-    segment_lines = enc[0, 0, :, :] + enc[0, 1, :, :] + enc[0, 2, :, :] + enc[0, 3, :, :]
     show_image(x[0])
-    plt.imshow(segment_lines.detach())
+    plt.imshow(torch.sum(enc, dim = 1).detach()[0])
     plt.show()
     show_image(dec[0, :, :, :].detach())
 
