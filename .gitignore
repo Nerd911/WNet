@@ -1,7 +1,7 @@
 data
 data2
 media
-utils
+utils/*/
 venv
 data/*
 

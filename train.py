@@ -14,6 +14,7 @@ import datetime
 import torch
 from torchvision import datasets, transforms
 from utils.soft_n_cut_loss import soft_n_cut_loss
+from utils.org_soft_n_cut_loss import batch_soft_n_cut_loss
 
 import WNet
 import matplotlib.pyplot as plt
@@ -35,10 +36,11 @@ parser.add_argument('--output_folder', metavar='of', default=None, type=str,
                     help='folder of output images')
 
 softmax = nn.Softmax2d()
+sigmoid = nn.Sigmoid()
 
-def train_op(model, optimizer, input, k, img_shape, psi=0.5):
+def train_op(model, optimizer, input, k, psi=0.5):
     enc = model(input, returns='enc') # The output of the UEnc is a normalized 224 × 224 × K dense prediction.
-    n_cut_loss=soft_n_cut_loss(input, softmax(enc), k, img_shape)
+    n_cut_loss=batch_soft_n_cut_loss(input, softmax(enc), k)
     n_cut_loss.backward() 
     optimizer.step()
     optimizer.zero_grad()
