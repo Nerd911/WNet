@@ -40,14 +40,12 @@ class Block(nn.Module):
         self.dropout2 = nn.Dropout(0.65) 
         self.batchnorm2=nn.BatchNorm2d(out_filters)
 
-    # https://github.com/ducha-aiki/caffenet-benchmark/blob/master/batchnorm.md
-    # Batchnorm after relu
     def forward(self, x):
-        x = self.relu1(self.conv1(x)).clamp(0)
-        x = self.batchnorm1(x)
+        x = self.batchnorm1(self.conv1(x)).clamp(0)
+        x = self.relu1(x)
         x = self.dropout1(x)
-        x = self.relu2(self.conv2(x)).clamp(0)
-        x = self.batchnorm2(x)
+        x = self.batchnorm2(self.conv2(x)).clamp(0)
+        x = self.relu2(x)
         x = self.dropout2(x)
         
         return x
