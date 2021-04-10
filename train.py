@@ -52,7 +52,7 @@ def train_op(model, optimizer, input, k, psi=0.5):
     return (model, n_cut_loss, rec_loss)
 
 def reconstruction_loss(x, x_prime):
-    criterionIdt = torch.nn.MSELoss()
+    criterionIdt = torch.nn.MSELoss(reduction='sum')
     rec_loss = criterionIdt(x_prime, x)
     return rec_loss
 
@@ -86,9 +86,19 @@ def main():
         wnet = wnet.cuda()
     learning_rate = 0.003
     optimizer = torch.optim.SGD(wnet.parameters(), lr=learning_rate)
-    # transforms.CenterCrop(224),
+
+    # https://deeplizard.com/learn/video/lu7TCu7HeYc Normalize images
     transform = transforms.Compose([transforms.Resize(img_size),
                                 transforms.ToTensor()])
+    dataset = datasets.ImageFolder(args.input_folder, transform=transform)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=True)
+    data, labels = next(iter(loader))
+    mean, std = data[0].mean(), data[0].std()
+
+    transform = transforms.Compose([transforms.Resize(img_size),
+                                transforms.ToTensor(),
+                                transforms.Normalize(mean, std)])
+
     dataset = datasets.ImageFolder(args.input_folder, transform=transform)
 
     # Train 1 image set batch size=1 and set shuffle to False
