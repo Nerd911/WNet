@@ -1,9 +1,7 @@
 # Reproducing a Deep Learning Paper
 ### By Asror Wali & Erwin Russel
 
-![alt text][Header image]
-
-[logo]: https://i.ibb.co/Cwhjm9T/zwaan-crf2.png "CRF output"
+![Header image](https://i.ibb.co/Cwhjm9T/zwaan-crf2.png)
 
 This is a short blog about a reproduction of the paper "W-Net: A Deep Model for Fully Unsupervised Image Segmentation".
 This reproduction is part of the CS4240 Deep Learning course at the TU Delft.
