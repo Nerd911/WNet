@@ -87,17 +87,8 @@ def main():
     learning_rate = 0.003
     optimizer = torch.optim.SGD(wnet.parameters(), lr=learning_rate)
 
-    # https://deeplizard.com/learn/video/lu7TCu7HeYc Normalize images
     transform = transforms.Compose([transforms.Resize(img_size),
                                 transforms.ToTensor()])
-    dataset = datasets.ImageFolder(args.input_folder, transform=transform)
-    loader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=True)
-    data, labels = next(iter(loader))
-    mean, std = data[0].mean(), data[0].std()
-
-    transform = transforms.Compose([transforms.Resize(img_size),
-                                transforms.ToTensor(),
-                                transforms.Normalize(mean, std)])
 
     dataset = datasets.ImageFolder(args.input_folder, transform=transform)
 
