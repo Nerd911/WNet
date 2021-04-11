@@ -14,7 +14,7 @@ import datetime
 import torch
 from torchvision import datasets, transforms
 from utils.soft_n_cut_loss import soft_n_cut_loss
-from utils.org_soft_n_cut_loss import batch_soft_n_cut_loss
+from utils.org_soft_n_cut_loss import batch_soft_n_cut_loss, NCutLoss2D
 
 import WNet
 import matplotlib.pyplot as plt
@@ -37,10 +37,10 @@ parser.add_argument('--output_folder', metavar='of', default=None, type=str,
 
 softmax = nn.Softmax2d()
 sigmoid = nn.Sigmoid()
-
+ncut = NCutLoss2D()
 def train_op(model, optimizer, input, k, psi=0.5):
     enc = model(input, returns='enc') # The output of the UEnc is a normalized 224 × 224 × K dense prediction.
-    n_cut_loss=batch_soft_n_cut_loss(input, softmax(enc), k)
+    n_cut_loss=ncut(softmax(enc), input)
     n_cut_loss.backward() 
     optimizer.step()
     optimizer.zero_grad()
@@ -52,7 +52,7 @@ def train_op(model, optimizer, input, k, psi=0.5):
     return (model, n_cut_loss, rec_loss)
 
 def reconstruction_loss(x, x_prime):
-    criterionIdt = torch.nn.MSELoss(reduction='sum')
+    criterionIdt = torch.nn.MSELoss()
     rec_loss = criterionIdt(x_prime, x)
     return rec_loss
 
@@ -99,7 +99,7 @@ def main():
     for epoch in range(args.epochs):
 
         # At 1000 epochs divide SGD learning rate by 10
-        if (epoch % 1000 == 0):
+        if (epoch > 0 and epoch % 1000 == 0):
             learning_rate = learning_rate/10
             optimizer = torch.optim.SGD(wnet.parameters(), lr=learning_rate)
 
