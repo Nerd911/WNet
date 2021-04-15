@@ -36,11 +36,12 @@ parser.add_argument('--output_folder', metavar='of', default=None, type=str,
                     help='folder of output images')
 
 softmax = nn.Softmax2d()
+criterionIdt = torch.nn.MSELoss()
 
 def train_op(model, optimizer, input, k, img_size, psi=0.5):
     enc = model(input, returns='enc')
     d = enc.clone().detach()
-    n_cut_loss=batch_soft_n_cut_loss_new(input,  softmax(enc),  img_size)
+    n_cut_loss=soft_n_cut_loss(input,  softmax(enc),  img_size)
     n_cut_loss.backward()
     optimizer.step()
     optimizer.zero_grad()
@@ -54,7 +55,6 @@ def train_op(model, optimizer, input, k, img_size, psi=0.5):
     return (model, n_cut_loss, rec_loss)
 
 def reconstruction_loss(x, x_prime):
-    criterionIdt = torch.nn.MSELoss()
     rec_loss = criterionIdt(x_prime, x)
     return rec_loss
 
