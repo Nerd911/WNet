@@ -121,7 +121,7 @@ def main():
             if CUDA:
                 batch[0] = batch[0].cuda()
             
-            wnet, n_cut_loss, rec_loss = train_op(wnet, optimizer, batch[0].cuda(), k, img_size)
+            wnet, n_cut_loss, rec_loss = train_op(wnet, optimizer, batch[0], k, img_size)
 
             n_cut_losses.append(n_cut_loss.detach())
             rec_losses.append(rec_loss.detach())
@@ -140,8 +140,8 @@ def main():
     enc, dec = wnet(images)
 
     torch.save(wnet.state_dict(), "model_" + args.name)
-    np.save("losses_output/n_cut_losses_" + args.name, n_cut_losses_avg)
-    np.save("losses_output/rec_losses_" + args.name, rec_losses_avg)
+    np.save("n_cut_losses_" + args.name, n_cut_losses_avg)
+    np.save("rec_losses_" + args.name, rec_losses_avg)
     print("Done")
 
 if __name__ == '__main__':
