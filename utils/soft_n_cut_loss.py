@@ -11,7 +11,10 @@ def calculate_weights(input, batch_size, img_size=(64, 64), ox=4, radius=5 ,oi=1
     h, w = img_size
     p = radius
 
-    image = F.pad(input=image, pad=(p, p, p, p), mode='constant', value=99999)
+    image = F.pad(input=image, pad=(p, p, p, p), mode='constant', value=0)
+    # randomized_inputs = (0 - 255) * torch.rand(image.shape).cuda() + 255
+    # mask = image.eq(0)
+    # image = image + (mask *randomized_inputs)
 
     kh, kw = radius*2 + 1, radius*2 + 1
     dh, dw = 1, 1
@@ -47,7 +50,7 @@ def soft_n_cut_loss_single_k(weights, enc, batch_size, img_size, radius=5):
 
     kh, kw = radius*2 + 1, radius*2 + 1
     dh, dw = 1, 1
-    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=99999)
+    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=0)
 
     seg = encoding.unfold(2, kh, dh).unfold(3, kw, dw)
     seg = seg.contiguous().view(batch_size, channels, -1, kh, kw)
