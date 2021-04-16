@@ -1,3 +1,5 @@
+# This file has been written by @AsWali and @ErwinRussel
+
 import math
 import torch
 import torch.nn as nn
@@ -12,6 +14,7 @@ def calculate_weights(input, batch_size, img_size=(64, 64), ox=4, radius=5 ,oi=1
     p = radius
 
     image = F.pad(input=image, pad=(p, p, p, p), mode='constant', value=0)
+    # Use this to generate random values for the padding.
     # randomized_inputs = (0 - 255) * torch.rand(image.shape).cuda() + 255
     # mask = image.eq(0)
     # image = image + (mask *randomized_inputs)
