@@ -18,6 +18,8 @@ W-Net uses two different datasets, they train the network using the PASCAL VOC20
 
 ## The Model
 
+![W-Net architecture](https://raw.githubusercontent.com/AsWali/WNet/master/media/Architecture.PNG)
+
 The W-Net model consists of 2 U-Nets, the first U-Net works as an encoder that generates a segmentated output for an input image X. The second U-Net uses this segmentated output to reconstruct the original input image X. To optimize these 2 U-Nets, the paper introduces 2 loss functions. A Soft Normalized Cut Loss(soft_n_cut_loss), to optimize the encoder and a Reconstruction Loss(rec_loss), to optimize both the encoder and the decoder. The `soft_n_cut_loss` simultaneously minimizes the total normalized disassociation between the groups and maximize the total normalized association within the groups. In other words, the similarity between pixels inside of the same group/segment gets maximized while the similarity between different groups/segments get minimized. The `rec_loss` forces the encoder to generate segmentations that contain as much information of the original input as possible. The decoder prefers a good segmentation, so the encoder is forced to meet him half way. To show this we included a image:
 
 ![A meme showing the decoder needs a good segmentation to create a reconstruction](https://raw.githubusercontent.com/AsWali/WNet/master/media/enc_dec_meme.png)
