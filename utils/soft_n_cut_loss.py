@@ -14,7 +14,7 @@ def soft_n_cut_loss_single_k(input, enc, batch_size, k, img_size=(64, 64), ox=4,
     p = radius
 
     image = F.pad(input=image, pad=(p, p, p, p), mode='constant', value=99999)
-    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=0)
+    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=99999)
 
     kh, kw = radius*2 + 1, radius*2 + 1
     dh, dw = 1, 1

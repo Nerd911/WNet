@@ -95,7 +95,7 @@ First thing we did was look at already existing implementations, of which we fou
 1. https://github.com/gr-b/W-Net-Pytorch, uses a matrix solution to compare all pixels with each other. Does not use the `radius` mentioned in the paper, although it is added as a argument. Some of the methods are also ported from a Tensorflow implementation, so the code has some weird things like a custom `outer` method.
 2. https://github.com/fkodom/wnet-unsupervised-image-segmentation, which uses conv2d kernels to compare the pixels, which is much more efficient when working with large images. This implementation deviates from the paper by doing an pixel average, they mention this: "Small modifications have been made here for efficiency -- specifically, we compute the pixel-wise weights relative to the class-wide average, rather than for every individual pixel."
 
-Instead of using these, we decided to implement this loss ourselves and stay true to the paper.
+**Instead of using these, we decided to implement this loss ourselves and stay true to the paper.**
 
 Because we implemented this on our relatively low spec laptops we worked with `64x64` images while developing. So the matrix approach worked without giving memory issues and was the first one we did. The idea was similar to the first Github linked above, but the code is created on our own. The main point was created a weight matrix which compares all `NxN` pixels with each other. So this results in a weight matrix of size `N*NxN*N`, quite a big matrix but doable for image sizes of `64x64`. To illustrate our approach we are gonna use a 3x3 matrix, lets say we have this matrix.
 
@@ -182,7 +182,7 @@ tensor([[0, 0, 0],
 ```
 Because the function tries to minimize the distance between pixels in the same groups its best to use a high value for these padding, we used `99999`. But any value higher the difference between the minimum and maximum value in the image should suffice.
 
-But now the image gets split up in X amount of pixel value windows, depending on the image size and the radius used. We can similary do the same for the output of the encoder. Create the same X amount of windows. Here we leave the padding on `0` because we use these values to multiply with the pixel value windows to calculate the nominator.
+But now the image gets split up in X amount of pixel value windows, depending on the image size and the radius used. We can similary do the same for the output of the encoder. Create the same X amount of windows.
 
 We can sum all these windows and create a matrix with the same shape as the original image. Where each (i,j) location contains weights summed up for that (i,j) location. Now we just multiple the a single layer of the output of the encoder with this weight. This method works great, we can even do this batchwise across multiple images, and this stays true to the paper.
 ## Post-processing
