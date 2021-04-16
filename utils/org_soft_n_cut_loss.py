@@ -17,15 +17,15 @@ def get_weights(flatten_image, o_w, o_h, oi=10, ox=4, radius=5):
         x = x.cuda()
         y = y.cuda()
 
-    X_cord = x.repeat_interleave(o_h)
-    Y_cord = y.repeat(o_w)
+    Y_cord = x.repeat_interleave(o_h)
+    X_cord = y.repeat(o_w)
 
     X_expand = X_cord.expand(len(X_cord), len(X_cord))
     Y_expand = Y_cord.expand(len(Y_cord), len(Y_cord))
     X_expandT = X_expand.T
     Y_expandT = Y_expand.T
-    Xij = (X_expand - X_expandT) ** 2
-    Yij = (Y_expand - Y_expandT) ** 2
+    Xij = (X_expand - X_expandT)
+    Yij = (Y_expand - Y_expandT)
 
     sq_distance_matrix = torch.hypot(Xij, Yij)
     mask = sq_distance_matrix.le(radius)
