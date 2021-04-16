@@ -22,7 +22,7 @@ W-Net uses two different datasets, they train the network using the PASCAL VOC20
 
 The W-Net model consists of 2 U-Nets, the first U-Net works as an encoder that generates a segmentated output for an input image X. The second U-Net uses this segmentated output to reconstruct the original input image X. 
 
-To optimize these 2 U-Nets, the paper introduces 2 loss functions. A Soft Normalized Cut Loss(soft_n_cut_loss), to optimize the encoder and a Reconstruction Loss(rec_loss), to optimize both the encoder and the decoder. 
+To optimize these 2 U-Nets, the paper introduces 2 loss functions. First, A Soft Normalized Cut Loss(soft_n_cut_loss), to optimize the encoder and Secondly a Reconstruction Loss(rec_loss), to optimize both the encoder and the decoder. 
 
 The `soft_n_cut_loss` simultaneously minimizes the total normalized disassociation between the groups and maximize the total normalized association within the groups. In other words, the similarity between pixels inside of the same group/segment gets maximized while the similarity between different groups/segments get minimized. 
 
@@ -100,13 +100,13 @@ With `w(u,v)` being a weight between `(u,v)` and `p` being the probability value
 
 
 First thing we did was look at already existing implementations, of which we found two:
-1. https://github.com/gr-b/W-Net-Pytorch[^x2], uses a matrix solution to compare all pixels with each other. Does not use the `radius` mentioned in the paper, although it is added as a argument. Some of the methods are also ported from a Tensorflow implementation, so the code has some weird things like a custom `outer` method.
+1. https://github.com/gr-b/W-Net-Pytorch[^x2], uses a matrix solution to compare all pixels with each other. Does not use the `radius` mentioned in the paper, although it is added as a argument. Some of the methods are also ported from a Tensorflow implementation, so the code has custom implementations for calls which already exist in the PyTorch API, like custom outer functions.
 2. https://github.com/fkodom/wnet-unsupervised-image-segmentation[^x3], which uses conv2d kernels to compare the pixels, which is much more efficient when working with large images. This implementation deviates from the paper by doing an pixel average, they mention this: "Small modifications have been made here for efficiency -- specifically, we compute the pixel-wise weights relative to the class-wide average, rather than for every individual pixel."
 
-**Instead of using these, we decided to implement this loss ourselves and stay true to the paper.**
+**Instead of using these implementations, we decided to implement this loss ourselves and stay true to the paper.**
 
 ### Aproach 1: creating a weight matrix
-Because we implemented this on our relatively low spec laptops we worked with `64x64` images while developing. So the matrix approach worked without giving memory issues and was the first one we did. The idea was similar to the first Github linked above, but the code is created on our own. The main point was created a weight matrix which compares all `NxN` pixels with each other. So this results in a weight matrix of size `N*NxN*N`, quite a big matrix but doable for image sizes of `64x64`. To illustrate our approach we are gonna use a 3x3 matrix, lets say we have this matrix.
+Because we implemented this on our relatively low spec laptops we worked with `64x64` images while developing. So the matrix approach worked without giving memory issues, and was the first approach we did. The idea was similar to the first Github linked above, but the code is created on our own. The main idea was to create a weight matrix which compares all `NxN` pixels with each other. So this results in a weight matrix of size `N*NxN*N`, quite a big matrix but doable for image sizes of `64x64`. To illustrate our approach we are going to use a 3x3 matrix, lets say we have this matrix.
 
 ```python
 tensor([[1., 2., 3.],
@@ -139,9 +139,9 @@ tensor([[ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.],
         [-7., -6., -5., -4., -3., -2., -1.,  0.,  1.],
         [-8., -7., -6., -5., -4., -3., -2., -1.,  0.]])
 ```
-If we divide all these values by the given deviation parameter and put it on an expontial we will get the first part of the W matrix. The second part uses the radius, so that it only looks at pixels inside of the radius lenghth.
+If we divide all these values by the given deviation parameter and put it on an expontial we will get the first part of the W matrix. The second part uses the radius, so that it only looks at pixels inside of the radius length.
 
-To implement this we did the same thing again with the flattening and the expanding as above, but this time we created 2 matrices and used index locations as values. For example the matrix containing the X locations.
+To implement this radius constraint, we did the same thing again with the flattening and the expanding as above, but this time we created 2 matrices and used index locations as values. For example the matrix containing the X locations.
 ```python
 tensor([[0., 1., 2.],
         [0., 1., 2.],
@@ -155,7 +155,7 @@ Yij = (Y_expand - Y_expandT)
 
 sq_distance_matrix = torch.hypot(Xij, Yij)
 ```
-So now we got the distances between pixels, we can set all distance to 0 if they are larger than the given radius using a mask. We apply the mask after we did the division and the exponential. After we did that we can multiply the 2 matrices to create the final weight matrix.
+So now we got the distances between pixels, we can set all distance to 0 if they are larger than the given radius using a mask. We first apply the mask to the sq_distance_matrix, divide this matrix and apply the exponential. After applying these transformations, the two matrices are multiplied to create the final weight matrix
 
 ```python
 mask = sq_distance_matrix.le(radius)
@@ -166,10 +166,10 @@ W_X = torch.mul(mask, C)
 weights = torch.mul(W_F, W_X)
 ```
 
-Now we can use this weight matrix and the results of the encoder to calculate the `soft_n_cut_loss`, but the paper mentioned that they trained on images of size `224x224`. Using the weight matrix method on images of this size result in mulitple matrices of size `50176x50176`.
+Now we can use this weight matrix and the results of the encoder to calculate the `soft_n_cut_loss`, but the paper mentioned that they trained on images of size `224x224`. Using the weight matrix method on images of this size result in multiple matrices of size `50176x50176`.
 
 ### Aproach 2: custom sliding window
-The second idea resolves around the radius they use. The weights are 0 for pixels that are farther away than the radius. So the calculations needed could be contained to a window of size `radius*2 + 1`, the plus 1 so that the kernel has an uneven size and has a good center.
+The second idea is based on the local computation involving the radius. The weights are 0 for pixels that are farther away than the radius. So the calculations needed could be contained to a window of size `radius*2 + 1`, the plus 1 so that the kernel has an uneven size and has a good center.
 
 Lets consider the following image:
 ```python
