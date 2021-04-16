@@ -180,11 +180,12 @@ tensor([[0, 0, 0],
         [0.3337, 0.1697, 0.4311],
         [0.2870, 0.0539, 0.2289]])
 ```
-Because the function tries to minimize the distance between pixels in the same groups its best to use a high value for these padding, we used `99999`. But any value higher the difference between the minimum and maximum value in the image should suffice.
+We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it doesn't mather, but we didn't have enough time to test this.
 
 But now the image gets split up in X amount of pixel value windows, depending on the image size and the radius used. We can similary do the same for the output of the encoder. Create the same X amount of windows.
 
-We can sum all these windows and create a matrix with the same shape as the original image. Where each (i,j) location contains weights summed up for that (i,j) location. Now we just multiple the a single layer of the output of the encoder with this weight. This method works great, we can even do this batchwise across multiple images, and this stays true to the paper.
+We can sum all these windows and create a matrix with the same shape as the original image. Where each (i,j) location contains weights summed up for that (i,j) centered window. Now we just do an element wise multiplication between the layer of the encoder output and the newly generated matrix. This method works great, we can even do this batchwise across multiple images and we do this very efficiently, and this stays true to the paper.
+
 ## Post-processing
 
 Since the output of the encoder shows the hidden representation, but is still rough. The postprocessing algorithm can be found in the image under Algorithm 2.
