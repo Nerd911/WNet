@@ -33,7 +33,7 @@ The `rec_loss` forces the encoder to generate segmentations that contain as much
 
 The W-Net code is publicly available on GitHub[^x1]. Although it is provided it is in an incomplete state, the 2 U-Nets have been implemented but it's missing the Relu activation and the dropout mentioned in the W-Net paper. The script provided to train the model is also not implemented. And both loss functions used in the paper are not implemented. Instead they used kernels for vertical and horizontal edge detection to optimize the encoder and an unusual mean function for the decoder.
 
-So to reproduce the W-Net paper, we need to add all these missings elements. Which we will cover in the following sections.
+So to reproduce the W-Net paper, we need to add all these missings elements. Most of these are easy to add, so we mostly will focus on the hard part the loss functions and the benchmarking process.
 
 ## Losses
 
