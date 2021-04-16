@@ -195,7 +195,7 @@ tensor([[0, 0, 0],
         [0.3337, 0.1697, 0.4311],
         [0.2870, 0.0539, 0.2289]])
 ```
-We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it does not matter, but we did not have enough time to test and prove this assumtion.
+We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it does not matter, but we did not have enough time to test and prove this assumption.
 
 For each of these windows we create two seperate windows, one containing only the center values(`c_values_window`) and the second one consisting of relative euclidian distances(`distance_weights_windows`). 
 
@@ -228,9 +228,14 @@ We apply postprocessing to the encoder output. A fully conditional random field 
 The models were trained on a Google Cloud compute engine running in zone us-west-1b. The machine was initialized with CUDA support and running PyTorch 1.8. The specifications of the machine state the N1 high-memory 2 vCPU’s with 13GB RAM, and it was additionally beefed up with a NVIDIA Tesla K80 sporting 24GB RAM.
 The following images were with a small dataset of 10 images and 100 epochs. The squeeze layer is of size 22 and dropout is set to 0.15. Left to right:  Input image, Encoder output, Decoder reconstruction, CRF smoothed encoding.
 
-![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/poster_results.png)
+![Results1](https://raw.githubusercontent.com/AsWali/WNet/master/media/poster_results.png)
 
-We also trained our model locally on 1 image, we did this for 300 epochs with a learning_rate=0.003. Below are the results for squeeze=4 and squeeze=6.
+We also trained our model locally on 1 image, we did this for 300 epochs with a learning_rate=0.003. 
+Left to right:  Input image, Encoder output, Decoder reconstruction, CRF smoothed encoding.
+
+![Results2](https://raw.githubusercontent.com/AsWali/WNet/master/media/results_model_asror.png)
+
+Below are the results for squeeze=4 and squeeze=6.
 
 ![K=4 head](https://raw.githubusercontent.com/AsWali/WNet/master/media/Figure_1.png)
 ![K=6 head](https://raw.githubusercontent.com/AsWali/WNet/master/media/Figure_2.png)
