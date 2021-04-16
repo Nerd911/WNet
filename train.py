@@ -82,7 +82,7 @@ def main():
 
     # Squeeze k
     k = args.squeeze
-    img_size = (64, 64)
+    img_size = (224, 224)
     wnet = WNet.WNet(k)
     if(CUDA):
         wnet = wnet.cuda()

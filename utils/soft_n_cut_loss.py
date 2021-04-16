@@ -42,7 +42,8 @@ def calculate_weights(input, batch_size, img_size=(64, 64), ox=4, radius=5 ,oi=1
     mask = distance_weights.le(radius)
     distance_weights = torch.exp(torch.div(-1*(distance_weights), ox**2))
     distance_weights = torch.mul(mask, distance_weights)
-    # the 0's from the padding may cause an issue
+
+
     patches = torch.exp(torch.div(-1*((patches - center_values)**2), oi**2))
     return torch.mul(patches, distance_weights)
 
