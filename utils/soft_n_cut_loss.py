@@ -5,29 +5,22 @@ import torch.nn.functional as F
 import numpy as np
 from torch.nn.modules.utils import _pair, _quadruple
 
-## Optimization possible. The weights are the same for all k so no need to recalculate them
-## Only the last 3 lines are different for seperate k's
-def soft_n_cut_loss_single_k(input, enc, batch_size, k, img_size=(64, 64), ox=4, radius=5 ,oi=10):
+def calculate_weights(input, batch_size, img_size=(64, 64), ox=4, radius=5 ,oi=10):
     channels = 1
     image = torch.mean(input, dim=1, keepdim=True)
     h, w = img_size
     p = radius
 
     image = F.pad(input=image, pad=(p, p, p, p), mode='constant', value=99999)
-    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=99999)
 
     kh, kw = radius*2 + 1, radius*2 + 1
     dh, dw = 1, 1
 
     patches = image.unfold(2, kh, dh).unfold(3, kw, dw)
-    seg = encoding.unfold(2, kh, dh).unfold(3, kw, dw)
 
     patches = patches.contiguous().view(batch_size, channels, -1, kh, kw)
-    seg = seg.contiguous().view(batch_size, channels, -1, kh, kw)
     patches = patches.permute(0, 2, 1, 3, 4)
     patches = patches.view(-1, channels, kh, kw)
-    seg = seg.permute(0, 2, 1, 3, 4)
-    seg = seg.view(-1, channels, kh, kw)
 
     center_values = patches[:, :, radius, radius]
     center_values = center_values[:, :, None, None]
@@ -45,11 +38,26 @@ def soft_n_cut_loss_single_k(input, enc, batch_size, k, img_size=(64, 64), ox=4,
     distance_weights = torch.mul(mask, distance_weights)
     # the 0's from the padding may cause an issue
     patches = torch.exp(torch.div(-1*((patches - center_values)**2), oi**2))
-    W = torch.mul(patches, distance_weights)
-    d = W * seg
+    return torch.mul(patches, distance_weights)
 
-    nominator = torch.sum(enc * torch.sum(d, dim=(1,2,3)).reshape(batch_size, h, w), dim=(1,2,3))
-    denominator = torch.sum(enc * torch.sum(W, dim=(1,2,3)).reshape(batch_size, h, w), dim=(1,2,3))
+def soft_n_cut_loss_single_k(weights, enc, batch_size, img_size, radius=5):
+    channels = 1
+    h, w = img_size
+    p = radius
+
+    kh, kw = radius*2 + 1, radius*2 + 1
+    dh, dw = 1, 1
+    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=99999)
+
+    seg = encoding.unfold(2, kh, dh).unfold(3, kw, dw)
+    seg = seg.contiguous().view(batch_size, channels, -1, kh, kw)
+    seg = seg.permute(0, 2, 1, 3, 4)
+    seg = seg.view(-1, channels, kh, kw)
+
+    nom = weights * seg
+
+    nominator = torch.sum(enc * torch.sum(nom, dim=(1,2,3)).reshape(batch_size, h, w), dim=(1,2,3))
+    denominator = torch.sum(enc * torch.sum(weights, dim=(1,2,3)).reshape(batch_size, h, w), dim=(1,2,3))
 
     return torch.div(nominator, denominator)
 
@@ -57,7 +65,8 @@ def soft_n_cut_loss(image, enc, img_size):
     loss = []
     batch_size = image.shape[0]
     k = enc.shape[1]
+    weights = calculate_weights(image, batch_size, img_size)
     for i in range(0, k):
-        loss.append(soft_n_cut_loss_single_k(image, enc[:, (i,), :, :], batch_size, k, img_size))
+        loss.append(soft_n_cut_loss_single_k(weights, enc[:, (i,), :, :], batch_size, img_size))
     da = torch.stack(loss)
     return torch.mean(k - torch.sum(da, dim=0))
