@@ -20,7 +20,7 @@ W-Net uses two different datasets, they train the network using the PASCAL VOC20
 
 The W-Net model consists of 2 U-Nets, the first U-Net works as an encoder that generates a segmentated output for an input image X. The second U-Net uses this segmentated output to reconstruct the original input image X. To optimize these 2 U-Nets, the paper introduces 2 loss functions. A Soft Normalized Cut Loss(soft_n_cut_loss), to optimize the encoder and a Reconstruction Loss(rec_loss), to optimize both the encoder and the decoder. The `soft_n_cut_loss` simultaneously minimizes the total normalized disassociation between the groups and maximize the total normalized association within the groups. In other words, the similarity between pixels inside of the same group/segment gets maximized while the similarity between different groups/segments get minimized. The `rec_loss` forces the encoder to generate segmentations that contain as much information of the original input as possible. The decoder prefers a good segmentation, so the encoder is forced to meet him half way. To show this we included a image:
 
-![A meme showing the decoder needs a good segmentation to create a reconstruction](../media/enc_dec_meme.png)
+![A meme showing the decoder needs a good segmentation to create a reconstruction](./media/enc_dec_meme.png)
 
 
 The W-Net code is publicly available on GitHub[^x1]. Although it is provided it is in an incomplete state, the 2 U-Nets have been implemented but it's missing the Relu activation and the dropout mentioned in the W-Net paper. The script provided to train the model is also not implemented. And both loss functions used in the paper are not implemented. Instead they used kernels for vertical and horizontal edge detection to optimize the encoder and an unusual mean function for the decoder.
@@ -30,7 +30,7 @@ So to reproduce the W-Net paper, we need to add all these missings elements. Whi
 ## Losses
 
 The algorithm to train the model is described as this in the paper:
-![A meme showing the decoder needs a good segmentation to create a reconstruction](../media/algo_1.png)
+![Algorithm the use to train the model](./media/algo_1.png)
 
 The delivered function looks like this:
 ```python
@@ -50,7 +50,7 @@ def train_op(model, optimizer, input, psi=0.5):
 
 So we need to implemented the losses used in the paper, the reconstruction loss (`rec_loss`) is an easy one to implement. It looks like this:
 
-![A meme showing the decoder needs a good segmentation to create a reconstruction](../media/rec_loss.png)
+![The reconstruction loss used](./media/rec_loss.png)
 
 So we need to minimize the distance between the original image X and the output of the decoder, given the segmentated output of the encoder.
 
@@ -84,11 +84,11 @@ def train_op(model, optimizer, input, psi=0.5):
 
 The Soft Normalized Cut Loss(`soft_n_cut_loss`) is a bit harder to implement. The function looks like this:
 
-![A meme showing the decoder needs a good segmentation to create a reconstruction](../media/soft_n_cut_loss.png)
+![The soft normalized n cut loss](./media/soft_n_cut_loss.png)
 
 With `w(u,v)` being a weight between `(u,v)` and `p` being the probability value the encoder gives to an pixel belonging to group k, implementing `w `looks like this:
 
-![A meme showing the decoder needs a good segmentation to create a reconstruction](../media/weight_calc.png)
+![Weight calculation](./media/weight_calc.png)
 
 
 First thing we did was look at already existing implementations, of which we found two:
