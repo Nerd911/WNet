@@ -253,7 +253,7 @@ The benchmarks will include Segmentation Covering, Variation of information and 
 
 ### Segmentation Covering
 
-
+To calculate the segmentation overlap, we first need the formula to calculate the overlap of two segments. This is basically intersection over union.
 
 ![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
 ![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_covering.png)
