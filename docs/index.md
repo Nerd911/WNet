@@ -226,9 +226,7 @@ We apply postprocessing to the encoder output. A fully conditional random field 
 ## Results
 
 The models were trained on a Google Cloud compute engine running in zone us-west-1b. The machine was initialized with CUDA support and running PyTorch 1.8. The specifications of the machine state the N1 high-memory 2 vCPU’s with 13GB RAM, and it was additionally beefed up with a NVIDIA Tesla K80 sporting 24GB RAM.
-
-*
-*
+The following 
 
 ## Benchmarking
 
@@ -242,6 +240,7 @@ We resize the image with nearest neighbor resampling, in this way we retain havi
 The benchmarks will include Segmentation Covering, Variation of information and Probabilistic Rand Index, these are thoroughly explained in the paper by Arbelaez et al. [^x4] which is cited in the paper, however an implementation of them was not found in the Github repository. There is benchmarking code available on the BSD website, but this meant the segmentations had to be reencoded into matlab. Since the benchmarking is a large part of the reproduction we decided to try implementing it ourselves. We will go over the implementation in the following sections and a full notebook can be found in the repository. We have some doubts about the correctness of these benchmarks, if one needs to be sure, they can use the benchmarking code from the Berkeley Segmentation Dataset, however the output of the segmentation need to be converted to .mat files first. 
 
 ### Segmentation Covering
+
 
 
 ![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
@@ -370,9 +369,9 @@ We show the results of a model trained for a model with 400 epochs, 40 batches a
 |--------------|------|------|-------|------|------|------|
 |              | ODS  | OIS  | ODS   | OIS  | ODS  | OIS  |
 | WNet (paper) | 0.57 | 0.62 | 0.81  | 0.84 | 1.76 | 1.60 |
-| WNet (ours)  | 0.44 | 0.44 |       |      | 2.44 | 2.43 |
+| WNet (ours)  | 0.44 | 0.44 | 0.41  | 0.41 | 2.44 | 2.43 |
 
-We see that our model has worse segmentation covering than the model in the paper, with no differences between optimal data set scale and optimal image scale. PRI ... . Variation of information is much worse than the model in the paper. We have seen better results when running on a single image and comparing that with the ground truth.
+We see that our model has worse segmentation covering than the model in the paper, with no differences between optimal data set scale and optimal image scale. The probabilistic rand index is much much lower than in the paper, however we have trained on a downscaled ground truth and image size to preserve computational time and as mentioned before we are sceptic about our implementation of the PRI. Variation of information is much worse than the model in the paper. We have seen better results when running on a single image and comparing that with the ground truth.
 
 ## Reproduction Discussion
 
