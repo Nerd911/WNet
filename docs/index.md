@@ -12,9 +12,13 @@ Next to reproducing the cool segmentation abilities of the WNet architecture, we
 
 The dataset is discussed following the losses and postprocessing. We are showing preliminary results on a small dataset, since the original paper trained the model 50000 epochs on 12000 images  this was not attainable given the resources given (google cloud and educational credit). We therefore show one of the results training on a miniscule dataset size of only 10 images running with 100 epochs. 
 
+Reproduction is a very important task in the field of Deep Learning, and as it turns out, reproduction is HARD. Missing data, code, specifications and more is common in Deep Learning research papers. And while said research can be groundbreaking, it is of no use when it cannot be replicated. We tried to be as thorough as possible in our reproduction but must state that given the time and budget of our reproduction it can be seen as an attempt to reenact this research and documenting our findings along the way. If there are any questions about this blog or the Github repository, please feel free to contact us at our emails ([Asror](mailto:A.wali-1@student.tudelft.nl) or [Erwin](mailto:e.f.j.russel@student.tudelft.nl) or opening a Github issue. 
+
 ## Dataset
 
-W-Net uses two different datasets, they train the network using the PASCAL VOC2012 dataset and evaluate the network using the Berkeley Segmentation Database (BSDS 300 and BSDS 500).  The PASCAL VOC2012 dataset is a large visual object classes challenge which contains 11,530 images and 6,929 segmentations. BSDS300 and BSDS500 have 300 and 500 images including human-annotated segmentationas ground truth. 
+W-Net uses two different datasets, they train the network using the PASCAL VOC2012 dataset and evaluate the network using the Berkeley Segmentation Database (BSDS 300 and BSDS 500).  The PASCAL VOC2012 dataset is a large visual object classes challenge which contains 11,530 images and 6,929 segmentations. BSDS300 and BSDS500 have 300 and 500 images including human-annotated segmentations ground truth. The images are divided into a training set of 200 images, and a test set of 100 images. The ground truth are Matlab files that are 2D matrices with the annotated labels, with multiple segmentations. The different segmentations for a single picture can be seen below.
+
+
 
 ## The Model
 
@@ -190,7 +194,7 @@ tensor([[0, 0, 0],
         [0.3337, 0.1697, 0.4311],
         [0.2870, 0.0539, 0.2289]])
 ```
-We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it does not matter, but we did not have enough time to test and prove this assumption.
+We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it does not matter, but we did not have enough time to test and prove this assumtion.
 
 For each of these windows we create two seperate windows, one containing only the center values(`c_values_window`) and the second one consisting of relative euclidian distances(`distance_weights_windows`). 
 
@@ -222,9 +226,121 @@ We apply postprocessing to the encoder output. A fully conditional random field 
 
 The models were trained on a Google Cloud compute engine running in zone us-west-1b. The machine was initialized with CUDA support and running PyTorch 1.8. The specifications of the machine state the N1 high-memory 2 vCPU’s with 13GB RAM, and it was additionally beefed up with a NVIDIA Tesla K80 sporting 24GB RAM.
 
+INSERT TABLE
+
 ## Benchmarking
 
-The postprocessed output of the encoder will be benchmarked against the groundtruth of the BSD300 and BSD500 dataset. The benchmarks will include Segmentation Covering, Variation of information and Probabilistic Rand Index. These were not thoroughly explained in the paper and there is additional rescaling and segmentation clustering involved. 
+The postprocessed output of the encoder will be benchmarked against the groundtruth of the BSD300 and BSD500 dataset. The benchmarks were only mentioned and not thoroughly explained in the paper. There was also additional rescaling involved, the output of the Encoder had a square aspect ratio, whereas the Berkeley Segmentation Dataset featured either landscape, or portrait images. 
+We use opencv for resizing the segmentations with the following procedure:
+
+```
+segment_truth_ods = cv2.resize(segment_truth, dsize=(224, 224), interpolation=cv2.INTER_NEAREST)
+```
+We resize the image with nearest neighbor resampling, in this way we retain having similar labelling as before resizing.
+The benchmarks will include Segmentation Covering, Variation of information and Probabilistic Rand Index, these are thoroughly explained in the paper by Arbelaez et al. [^x4] which is cited in the paper, however an implementation of them was not found in the Github repository. There is benchmarking code available on the BSD website, but this meant the segmentations had to be reencoded into matlab. Since the benchmarking is a large part of the reproduction we decided to try implementing it ourselves. We will go over the implementation in the following sections and a full notebook can be found in the repository. 
+
+### Segmentation Covering
+
+```
+def calculate_overlap(r1, r2):
+    # intersection
+    a = np.count_nonzero(r1 * r2)
+    # union
+    b = np.count_nonzero(r1 + r2)
+    
+    return a/b
+
+def calculate_segmentation_covering(segmentation1, segmentation2):
+    assert segmentation1.shape == segmentation2.shape, "segmentations should be same size"
+    
+    N = segmentation1.shape[0] * segmentation1.shape[1]
+    
+    maxcoverings_sum = 0
+    
+    # Sum over regions
+    for label1 in np.unique(segmentation1):
+        # region is where the segmentation has a specific label
+        region1 = (segmentation1 == label1).astype(int) 
+        # |R| is the size of nonzero elements as this the region size
+        len_r = np.count_nonzero(region1) 
+        max_overlap = 0
+        # Calculate max overlap 
+        for label2 in np.unique(segmentation2):
+            # region is where the segmentation has a specific label
+            region2 = (segmentation2 == label2).astype(int)
+            # Calculate overlap
+            overlap = calculate_overlap(region1, region2)
+            max_overlap = max(max_overlap, overlap)
+        
+        maxcoverings_sum += (len_r * max_overlap)
+        
+    return (1 / N) * maxcoverings_sum
+```
+
+### Probabilistic Rand Index
+
+```
+import math
+
+def calculate_probabilistic_rand_index(segmentation1, segmentation2):
+    assert segmentation1.shape == segmentation2.shape, "segmentations should be same size"
+    
+    a1 = math.floor(segmentation1.shape[0]/10)
+    a2 = math.floor(segmentation1.shape[1]/10)
+    
+    segmentation1 = cv2.resize(segmentation1, dsize=(a1, a2), interpolation=cv2.INTER_NEAREST)
+    segmentation2 = cv2.resize(segmentation2, dsize=(a1, a2), interpolation=cv2.INTER_NEAREST)
+    
+    segmentation1_flat = segmentation1.flatten()
+    segmentation2_flat = segmentation2.flatten()
+    
+    n = len(segmentation1_flat)
+    m = len(segmentation2_flat)
+    
+    T = n * m
+    
+    # first calculate pixel probabilities
+    prob_segment1 = {}
+    for label in np.unique(segmentation1):
+        prob_segment1[label] = np.count_nonzero(segmentation1 == label) / n
+    
+    prob_segment2 = {}
+    for label in np.unique(segmentation2):
+        prob_segment2[label] = np.count_nonzero(segmentation2 == label) / m
+        
+    rand_index_sum = 0 
+    
+    # Then perform main loop
+    for i in range(n):
+        for j in range(i,m):
+            pixeli = segmentation1_flat[i]
+            pixelj = segmentation2_flat[j]
+            # event that pixels i and j have the same label 
+            c_ij = pixeli == pixelj
+            # probability that pixels i and j have the same label
+            p_ij = prob_segment1[pixeli] * prob_segment2[pixelj]
+            rand_index_sum += c_ij * p_ij + (1 - c_ij) * (1 - p_ij)
+    
+    
+    return (1 / T) * rand_index_sum
+```
+
+
+### Variation of Information 
+
+```
+import skimage.measure
+import sklearn.metrics
+
+def calculate_variation_of_information(segmentation1, segmentation2):
+    assert segmentation1.shape == segmentation2.shape, "segmentations should be same size"
+    
+    ret = skimage.measure.shannon_entropy(segmentation1)
+    ret += skimage.measure.shannon_entropy(segmentation2)
+    ret -= 2 * sklearn.metrics.mutual_info_score(segmentation1.flatten(), segmentation2.flatten())
+    return ret
+```
+ 
 
 ## Reproduction Discussion
 
@@ -234,12 +350,11 @@ Both of us had around 100 dollars to spend on google cloud for training our mode
 ## Conclusion
 
 We have demonstrated a reproduction of the paper "W-net: A Deep Model for Fully Unsupervised Image Segmentation.". We have explained the dataset, the model, losses and postprocessing. Furthermore, we have demonstrated our preliminary results and explained our benchmarking approach of the project. 
-
-We believe the code is complete and true to the paper, but we didn't get the chance to run it in the same way as the paper.
-
-
+For us, we have gotten the experience of reproducing a paper with incomplete code. We see that even when fixing the codebase to the specifications of the paper, being able to train and test the implemented models could be infeasible for a normal computer science/artificial intelligence student. 
+We believe the code, that we have implemented right now, is complete and true to the paper, but we did not get the chance to run it in the same way as the paper.
 
 ### References
 [^x1]: T. (2018, October 17). taoroalin/WNet. GitHub. https://github.com/taoroalin/WNet
 [^x2]: G. (2019, November 26). gr-b/W-Net-Pytorch. GitHub. https://github.com/gr-b/W-Net-Pytorch
 [^x3]: F. (2019a, June 13). fkodom/wnet-unsupervised-image-segmentation. GitHub. https://github.com/fkodom/wnet-unsupervised-image-segmentation
+[^x4]: Arbeláez, P., Maire, M., Fowlkes, C., & Malik, J. (2011). Contour Detection and Hierarchical Image Segmentation. IEEE Transactions on Pattern Analysis and Machine Intelligence, 33(5), 898–916. https://doi.org/10.1109/tpami.2010.161
