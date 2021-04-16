@@ -20,7 +20,13 @@ W-Net uses two different datasets, they train the network using the PASCAL VOC20
 
 ![W-Net architecture](https://raw.githubusercontent.com/AsWali/WNet/master/media/Architecture.PNG)
 
-The W-Net model consists of 2 U-Nets, the first U-Net works as an encoder that generates a segmentated output for an input image X. The second U-Net uses this segmentated output to reconstruct the original input image X. To optimize these 2 U-Nets, the paper introduces 2 loss functions. A Soft Normalized Cut Loss(soft_n_cut_loss), to optimize the encoder and a Reconstruction Loss(rec_loss), to optimize both the encoder and the decoder. The `soft_n_cut_loss` simultaneously minimizes the total normalized disassociation between the groups and maximize the total normalized association within the groups. In other words, the similarity between pixels inside of the same group/segment gets maximized while the similarity between different groups/segments get minimized. The `rec_loss` forces the encoder to generate segmentations that contain as much information of the original input as possible. The decoder prefers a good segmentation, so the encoder is forced to meet him half way. To show this we included a image:
+The W-Net model consists of 2 U-Nets, the first U-Net works as an encoder that generates a segmentated output for an input image X. The second U-Net uses this segmentated output to reconstruct the original input image X. 
+
+To optimize these 2 U-Nets, the paper introduces 2 loss functions. A Soft Normalized Cut Loss(soft_n_cut_loss), to optimize the encoder and a Reconstruction Loss(rec_loss), to optimize both the encoder and the decoder. 
+
+The `soft_n_cut_loss` simultaneously minimizes the total normalized disassociation between the groups and maximize the total normalized association within the groups. In other words, the similarity between pixels inside of the same group/segment gets maximized while the similarity between different groups/segments get minimized. 
+
+The `rec_loss` forces the encoder to generate segmentations that contain as much information of the original input as possible. The decoder prefers a good segmentation, so the encoder is forced to meet him half way. To show this we included a image:
 
 ![A meme showing the decoder needs a good segmentation to create a reconstruction](https://raw.githubusercontent.com/AsWali/WNet/master/media/enc_dec_meme.png)
 
@@ -227,7 +233,9 @@ Both of us had around 100 dollars to spend on google cloud for training our mode
 
 ## Conclusion
 
-We have demonstrated a reproduction of the paper "W-net: A Deep Model for Fully Unsupervised Image Segmentation.". This poster is a preview of the final blogpost we are writing for the course CS4240 Deep Learning. We have explained the dataset, the model, losses and postprocessing. Furthermore, we have demonstrated our preliminary results and explained our benchmarking approach of the project. As well as some shortcomings of the paper and the enclosed repository. 
+We have demonstrated a reproduction of the paper "W-net: A Deep Model for Fully Unsupervised Image Segmentation.". We have explained the dataset, the model, losses and postprocessing. Furthermore, we have demonstrated our preliminary results and explained our benchmarking approach of the project. 
+
+We believe the code is complete and true to the paper, but we didn't get the chance to run it in the same way as the paper.
 
 
 
