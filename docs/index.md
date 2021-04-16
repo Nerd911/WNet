@@ -230,6 +230,10 @@ The following images were with a small dataset of 10 images and 100 epochs. The 
 
 ![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/poster_results.png)
 
+We also trained our model locally on 1 image, we did this for 300 epochs with a learning_rate=0.003. Below are the results for squeeze=4 and squeeze=6.
+
+![K=4 head](https://raw.githubusercontent.com/AsWali/WNet/master/media/Figure_1.png)
+![K=6 head](https://raw.githubusercontent.com/AsWali/WNet/master/media/Figure_2.png)
 
 ## Benchmarking
 
