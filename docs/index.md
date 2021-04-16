@@ -190,7 +190,7 @@ tensor([[0, 0, 0],
         [0.3337, 0.1697, 0.4311],
         [0.2870, 0.0539, 0.2289]])
 ```
-We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it does not matter, but we did not have enough time to test and prove this assumtion.
+We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it does not matter, but we did not have enough time to test and prove this assumption.
 
 For each of these windows we create two seperate windows, one containing only the center values(`c_values_window`) and the second one consisting of relative euclidian distances(`distance_weights_windows`). 
 
