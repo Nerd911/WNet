@@ -226,9 +226,10 @@ We apply postprocessing to the encoder output. A fully conditional random field 
 ## Results
 
 The models were trained on a Google Cloud compute engine running in zone us-west-1b. The machine was initialized with CUDA support and running PyTorch 1.8. The specifications of the machine state the N1 high-memory 2 vCPU’s with 13GB RAM, and it was additionally beefed up with a NVIDIA Tesla K80 sporting 24GB RAM.
+The following images were with a small dataset of 10 images and 100 epochs. The squeeze layer is of size 22 and dropout is set to 0.15. Left to right:  Input image, Encoder output, Decoder reconstruction, CRF smoothed encoding.
 
-*
-*
+![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/poster_results.png)
+
 
 ## Benchmarking
 
@@ -244,12 +245,26 @@ The benchmarks will include Segmentation Covering, Variation of information and 
 ### Segmentation Covering
 
 
+
 ![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
 ![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_covering.png)
 
-The implementation in Python is as follows:
+The implementation in Python is as follows,
+Where the overlap is calculated by:
 
+```python
+def calculate_overlap(r1, r2):
+    # intersection
+    a = np.count_nonzero(r1 * r2)
+    # union
+    b = np.count_nonzero(r1 + r2)
+    
+    return a/b
 ```
+
+And then the full segmentation covering:
+
+```python
 def calculate_segmentation_covering(segmentation1, segmentation2):
     assert segmentation1.shape == segmentation2.shape, "segmentations should be same size"
     
@@ -276,17 +291,7 @@ def calculate_segmentation_covering(segmentation1, segmentation2):
         
     return (1 / N) * maxcoverings_sum
 ```
-Where the overlap is calculated by:
 
-```
-def calculate_overlap(r1, r2):
-    # intersection
-    a = np.count_nonzero(r1 * r2)
-    # union
-    b = np.count_nonzero(r1 + r2)
-    
-    return a/b
-```
 
 ### Probabilistic Rand Index
 
@@ -294,7 +299,7 @@ def calculate_overlap(r1, r2):
 
 While this was the hardest benchmark to comprehend, we attempted to implement it. Since each pixel pair is considered, there is downscaling involved as computing this on large scale images would be insanely computationally intensive. This is how we implemented it in Python, although we have some doubts on whether this is correct. 
 
-```
+```python
 import math
 
 def calculate_probabilistic_rand_index(segmentation1, segmentation2):
@@ -347,7 +352,7 @@ def calculate_probabilistic_rand_index(segmentation1, segmentation2):
 
 We implemented this in python using Scikit-learn and Scikit-image functions:
 
-```
+```python
 import skimage.measure
 import sklearn.metrics
 
@@ -361,7 +366,15 @@ def calculate_variation_of_information(segmentation1, segmentation2):
 ```
 ### Benchmarking Results
 
-We show the results of a model trained for a model with 400 epochs, 40 batches and a batch size of 5. 
+We show the results of a model trained for a model with 400 epochs, 40 batches and a batch size of 5. On the BSD500 test dataset, comparing to the W-Net model from the paper. For SC and PRI, higher scores are better. for VI, a lower score is better.
+
+| Method       | SC          |  PRI         |  VI         |
+|--------------|------|------|-------|------|------|------|
+|              | ODS  | OIS  | ODS   | OIS  | ODS  | OIS  |
+| WNet (paper) | 0.57 | 0.62 | 0.81  | 0.84 | 1.76 | 1.60 |
+| WNet (ours)  | 0.44 | 0.44 | 0.41  | 0.41 | 2.44 | 2.43 |
+
+We see that our model has worse segmentation covering than the model in the paper, with no differences between optimal data set scale and optimal image scale. The probabilistic rand index is much much lower than in the paper, however we have trained on a downscaled ground truth and image size to preserve computational time and as mentioned before we are sceptic about our implementation of the PRI. Variation of information is much worse than the model in the paper. We have seen better results when running on a single image and comparing that with the ground truth.
 
 ## Reproduction Discussion
 
