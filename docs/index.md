@@ -227,7 +227,8 @@ We apply postprocessing to the encoder output. A fully conditional random field 
 
 The models were trained on a Google Cloud compute engine running in zone us-west-1b. The machine was initialized with CUDA support and running PyTorch 1.8. The specifications of the machine state the N1 high-memory 2 vCPU’s with 13GB RAM, and it was additionally beefed up with a NVIDIA Tesla K80 sporting 24GB RAM.
 
-INSERT TABLE
+*
+*
 
 ## Benchmarking
 
@@ -244,7 +245,7 @@ The benchmarks will include Segmentation Covering, Variation of information and 
 
 
 ![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
-![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_coverings.png)
+![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_covering.png)
 
 The implementation in Python is as follows:
 
@@ -289,7 +290,7 @@ def calculate_overlap(r1, r2):
 
 ### Probabilistic Rand Index
 
-![Probabilistic Rand Index](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
+![Probabilistic Rand Index](https://raw.githubusercontent.com/AsWali/WNet/master/media/probabilistic_rand_index.png)
 
 While this was the hardest benchmark to comprehend, we attempted to implement it. Since each pixel pair is considered, there is downscaling involved as computing this on large scale images would be insanely computationally intensive. This is how we implemented it in Python, although we have some doubts on whether this is correct. 
 
@@ -342,7 +343,7 @@ def calculate_probabilistic_rand_index(segmentation1, segmentation2):
 
 ### Variation of Information 
 
-![Variation of information](https://raw.githubusercontent.com/AsWali/WNet/master/media/soft_n_cut_loss.png)
+![Variation of information](https://raw.githubusercontent.com/AsWali/WNet/master/media/variation_of_information.png)
 
 We implemented this in python using Scikit-learn and Scikit-image functions:
 
