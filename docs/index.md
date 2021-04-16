@@ -247,9 +247,22 @@ The benchmarks will include Segmentation Covering, Variation of information and 
 ![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
 ![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_covering.png)
 
-The implementation in Python is as follows:
+The implementation in Python is as follows,
+Where the overlap is calculated by:
 
+```python
+def calculate_overlap(r1, r2):
+    # intersection
+    a = np.count_nonzero(r1 * r2)
+    # union
+    b = np.count_nonzero(r1 + r2)
+    
+    return a/b
 ```
+
+And then the full segmentation covering:
+
+```python
 def calculate_segmentation_covering(segmentation1, segmentation2):
     assert segmentation1.shape == segmentation2.shape, "segmentations should be same size"
     
@@ -276,17 +289,7 @@ def calculate_segmentation_covering(segmentation1, segmentation2):
         
     return (1 / N) * maxcoverings_sum
 ```
-Where the overlap is calculated by:
 
-```
-def calculate_overlap(r1, r2):
-    # intersection
-    a = np.count_nonzero(r1 * r2)
-    # union
-    b = np.count_nonzero(r1 + r2)
-    
-    return a/b
-```
 
 ### Probabilistic Rand Index
 
@@ -294,7 +297,7 @@ def calculate_overlap(r1, r2):
 
 While this was the hardest benchmark to comprehend, we attempted to implement it. Since each pixel pair is considered, there is downscaling involved as computing this on large scale images would be insanely computationally intensive. This is how we implemented it in Python, although we have some doubts on whether this is correct. 
 
-```
+```python
 import math
 
 def calculate_probabilistic_rand_index(segmentation1, segmentation2):
@@ -347,7 +350,7 @@ def calculate_probabilistic_rand_index(segmentation1, segmentation2):
 
 We implemented this in python using Scikit-learn and Scikit-image functions:
 
-```
+```python
 import skimage.measure
 import sklearn.metrics
 
@@ -361,7 +364,15 @@ def calculate_variation_of_information(segmentation1, segmentation2):
 ```
 ### Benchmarking Results
 
-We show the results of a model trained for a model with 400 epochs, 40 batches and a batch size of 5. 
+We show the results of a model trained for a model with 400 epochs, 40 batches and a batch size of 5. On the BSD500 test dataset, comparing to the W-Net model from the paper. For SC and PRI, higher scores are better. for VI, a lower score is better.
+
+| Method       | SC          |  PRI         |  VI         |
+|--------------|------|------|-------|------|------|------|
+|              | ODS  | OIS  | ODS   | OIS  | ODS  | OIS  |
+| WNet (paper) | 0.57 | 0.62 | 0.81  | 0.84 | 1.76 | 1.60 |
+| WNet (ours)  | 0.44 | 0.44 |       |      | 2.44 | 2.43 |
+
+We see that our model has worse segmentation covering than the model in the paper, with no differences between optimal data set scale and optimal image scale. PRI ... . Variation of information is much worse than the model in the paper. We have seen better results when running on a single image and comparing that with the ground truth.
 
 ## Reproduction Discussion
 
