@@ -190,15 +190,15 @@ tensor([[0, 0, 0],
         [0.3337, 0.1697, 0.4311],
         [0.2870, 0.0539, 0.2289]])
 ```
-We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it doesn't mather, but we didn't have enough time to test this.
+We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it does not matter, but we did not have enough time to test and prove this assumtion.
 
-For each of these windows we create two seperate windows, one containing only the center values and the second one consisting of relative euclidian distances. 
+For each of these windows we create two seperate windows, one containing only the center values(`c_values_window`) and the second one consisting of relative euclidian distances(`distance_weights_windows`). 
 
-The first window we use to calculate the distance from the center for each element in the window. We can do this by substracting them.
+The `c_values_window` window is used to calculate the distance for each element compared to the center in the original window, this is done by subtraction.
 
 For the location distance we can create a window filled with relative distances. And remove the values farther away than the `radius` since the kernel will be a square.
 
-The 2 matrices will look like this. The second matrix will have the corners set to 0 since this kernel is created with a radius of `1`
+The 2 matrices, `c_values_window` and `distance_weights_windows`, will look like this. The second matrix will have the corners set to 0 since this kernel is created with a radius of `1`
 ```python
 tensor([[0.3337, 0.3337, 0.3337],
         [0.3337, 0.3337, 0.3337],
