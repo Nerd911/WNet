@@ -1,5 +1,6 @@
 # Reproducing a Deep Learning Paper
-### By Asror Wali & Erwin Russel
+### By Asror Wali - 4981081 - a.wali-1@student.tudelft.nl
+### & Erwin Russel - 4973976 - e.f.j.russel@student.tudelft.nl
 
 ![Header image](https://i.ibb.co/Cwhjm9T/zwaan-crf2.png)
 
