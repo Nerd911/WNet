@@ -5,7 +5,8 @@ import torch.nn.functional as F
 import numpy as np
 from torch.nn.modules.utils import _pair, _quadruple
 
-
+## Optimization possible. The weights are the same for all k so no need to recalculate them
+## Only the last 3 lines are different for seperate k's
 def soft_n_cut_loss_single_k(input, enc, batch_size, k, img_size=(64, 64), ox=4, radius=5 ,oi=10):
     channels = 1
     image = torch.mean(input, dim=1, keepdim=True)
@@ -13,7 +14,7 @@ def soft_n_cut_loss_single_k(input, enc, batch_size, k, img_size=(64, 64), ox=4,
     p = radius
 
     image = F.pad(input=image, pad=(p, p, p, p), mode='constant', value=99999)
-    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=99999)
+    encoding = F.pad(input=enc, pad=(p, p, p, p), mode='constant', value=0)
 
     kh, kw = radius*2 + 1, radius*2 + 1
     dh, dw = 1, 1
