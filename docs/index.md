@@ -226,7 +226,10 @@ We apply postprocessing to the encoder output. A fully conditional random field 
 ## Results
 
 The models were trained on a Google Cloud compute engine running in zone us-west-1b. The machine was initialized with CUDA support and running PyTorch 1.8. The specifications of the machine state the N1 high-memory 2 vCPU’s with 13GB RAM, and it was additionally beefed up with a NVIDIA Tesla K80 sporting 24GB RAM.
-The following 
+The following images were with a small dataset of 10 images and 100 epochs. The squeeze layer is of size 22 and dropout is set to 0.15. Left to right:  Input image, Encoder output, Decoder reconstruction, CRF smoothed encoding.
+
+![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/poster_results.png)
+
 
 ## Benchmarking
 
