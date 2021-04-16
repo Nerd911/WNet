@@ -12,7 +12,7 @@ Next to reproducing the cool segmentation abilities of the WNet architecture, we
 
 The dataset is discussed following the losses and postprocessing. We are showing preliminary results on a small dataset, since the original paper trained the model 50000 epochs on 12000 images  this was not attainable given the resources given (google cloud and educational credit). We therefore show one of the results training on a miniscule dataset size of only 10 images running with 100 epochs. 
 
-Reproduction is a very important task in the field of Deep Learning, and as it turns out, reproduction is HARD. Missing data, code, specifications and more is common in Deep Learning research papers. And while said research can be groundbreaking, it is of no use when it cannot be replicated. We tried to be as thorough as possible in our reproduction but must state that given the time and budget of our reproduction it can be seen as an attempt to reenact this research and documenting our findings along the way. If there are any questions about this blog or the Github repository, please feel free to contact us at our emails ([Asror](mailto:A.wali-1@student.tudelft.nl) or [Erwin](mailto:e.f.j.russel@student.tudelft.nl) or opening a Github issue. 
+Reproduction is a very important task in the field of Deep Learning, and as it turns out, reproduction is HARD. Missing data, code, specifications and more is common in Deep Learning research papers. And while said research can be groundbreaking, it is of no use when it cannot be replicated. We tried to be as thorough as possible in our reproduction but must state that given the time and budget of our reproduction it can be seen as an attempt to reenact this research and documenting our findings along the way. If there are any questions about this blog or the Github repository, please feel free to contact us at our emails ([Asror](mailto:A.wali-1@student.tudelft.nl) or [Erwin](mailto:e.f.j.russel@student.tudelft.nl)) or opening a Github issue. 
 
 ## Dataset
 
@@ -242,14 +242,6 @@ The benchmarks will include Segmentation Covering, Variation of information and 
 ### Segmentation Covering
 
 ```
-def calculate_overlap(r1, r2):
-    # intersection
-    a = np.count_nonzero(r1 * r2)
-    # union
-    b = np.count_nonzero(r1 + r2)
-    
-    return a/b
-
 def calculate_segmentation_covering(segmentation1, segmentation2):
     assert segmentation1.shape == segmentation2.shape, "segmentations should be same size"
     
@@ -275,6 +267,18 @@ def calculate_segmentation_covering(segmentation1, segmentation2):
         maxcoverings_sum += (len_r * max_overlap)
         
     return (1 / N) * maxcoverings_sum
+```
+
+Where the overlap is calculated by:
+
+```
+def calculate_overlap(r1, r2):
+    # intersection
+    a = np.count_nonzero(r1 * r2)
+    # union
+    b = np.count_nonzero(r1 + r2)
+    
+    return a/b
 ```
 
 ### Probabilistic Rand Index
