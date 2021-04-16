@@ -257,7 +257,12 @@ The benchmarks will include Segmentation Covering, Variation of information and 
 To calculate the segmentation overlap, we first need the formula to calculate the overlap of two segments. This is basically intersection over union.
 
 ![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
+
+With this overlap, we calculate the segmentation covering with the following forumula:
+
 ![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_covering.png)
+
+Where N is the number of segments, R is a segment in segmentation S and |R| the size of this segmentation. The formula looks for the maximum segmentation covering and sums this for the final result, dividing over the number of pixels.
 
 The implementation in Python is as follows,
 Where the overlap is calculated by:
@@ -302,10 +307,14 @@ def calculate_segmentation_covering(segmentation1, segmentation2):
     return (1 / N) * maxcoverings_sum
 ```
 
-
 ### Probabilistic Rand Index
 
+The probabilistic rand index is an extension of the rand index. The rand index is a measure of the similarity between segmentations on a pixel level. It looks at which pixels are assigned to which segment and if these segments have the same pixel assigned. The probabilistic rand index also extends on this by checking the probability of having the same label. 
+
 ![Probabilistic Rand Index](https://raw.githubusercontent.com/AsWali/WNet/master/media/probabilistic_rand_index.png)
+
+
+Where S is a segmentation and {Gk} the ground truth segmentations. T is the total number of elements and c_ij is the event that pixel i and pixel j are in the same segmentation. We looked at both segmentations and checked if they have the same label for this. the probability p_ij is the probability of this pixel being the same. We calculated this as the probability of a pixel having a certain label in the set of all labels in the segmentations and multiplying this probability from both segments. We are not sure if this is the right way to do it, the linked paper which explained these different benchmarks also did not go in-depth on this. Multiple searches on the internet only provide the adjusted rand index and the normal rand index. 
 
 While this was the hardest benchmark to comprehend, we attempted to implement it. Since each pixel pair is considered, there is downscaling involved as computing this on large scale images would be insanely computationally intensive. This is how we implemented it in Python, although we have some doubts on whether this is correct. 
 
@@ -357,6 +366,8 @@ def calculate_probabilistic_rand_index(segmentation1, segmentation2):
 
 
 ### Variation of Information 
+
+Variation of information looks at the entropy of both segmentations and the mutual information between them. This is given by the formula. 
 
 ![Variation of information](https://raw.githubusercontent.com/AsWali/WNet/master/media/variation_of_information.png)
 
