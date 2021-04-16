@@ -97,6 +97,7 @@ First thing we did was look at already existing implementations, of which we fou
 
 **Instead of using these, we decided to implement this loss ourselves and stay true to the paper.**
 
+### Aproach 1: creating a weight matrix
 Because we implemented this on our relatively low spec laptops we worked with `64x64` images while developing. So the matrix approach worked without giving memory issues and was the first one we did. The idea was similar to the first Github linked above, but the code is created on our own. The main point was created a weight matrix which compares all `NxN` pixels with each other. So this results in a weight matrix of size `N*NxN*N`, quite a big matrix but doable for image sizes of `64x64`. To illustrate our approach we are gonna use a 3x3 matrix, lets say we have this matrix.
 
 ```python
@@ -138,7 +139,7 @@ tensor([[0., 1., 2.],
         [0., 1., 2.],
         [0., 1., 2.]])
 ```
-So after flattening, expanding and substracting it own transpose we have 2 matrices. 1 containing the distance on the X dimension and one for the Y dimension. If we add these distance we got the manhatten distance, but we want the euclidian one
+So after flattening, expanding and substracting it own transpose we have 2 matrices. One containing the distance on the X dimension and one for the Y dimension. If we add these distance we got the manhatten distance, but we want the euclidian one
 
 ```python
 Xij = (X_expand - X_expandT)
@@ -159,6 +160,7 @@ weights = torch.mul(W_F, W_X)
 
 Now we can use this weight matrix and the results of the encoder to calculate the `soft_n_cut_loss`, but the paper mentioned that they trained on images of size `224x224`. Using the weight matrix method on images of this size result in mulitple matrices of size `50176x50176`.
 
+### Aproach 2: custom sliding window
 The second idea resolves around the radius they use. The weights are 0 for pixels that are farther away than the radius. So the calculations needed could be contained to a window of size `radius*2 + 1`, the plus 1 so that the kernel has an uneven size and has a good center.
 
 Lets consider the following image:
@@ -182,7 +184,24 @@ tensor([[0, 0, 0],
 ```
 We have no definite answers on what values are best to use for the padding. The assumption we have right now is that it doesn't mather, but we didn't have enough time to test this.
 
-But now the image gets split up in X amount of pixel value windows, depending on the image size and the radius used. We can similary do the same for the output of the encoder. Create the same X amount of windows.
+For each of these windows we create two seperate windows, one containing only the center values and the second one consisting of relative euclidian distances. 
+
+The first window we use to calculate the distance from the center for each element in the window. We can do this by substracting them.
+
+For the location distance we can create a window filled with relative distances. And remove the values farther away than the `radius` since the kernel will be a square.
+
+The 2 matrices will look like this. The second matrix will have the corners set to 0 since this kernel is created with a radius of `1`
+```python
+tensor([[0.3337, 0.3337, 0.3337],
+        [0.3337, 0.3337, 0.3337],
+        [0.3337, 0.3337, 0.3337]])
+
+tensor([[1.43 , 1, 1.43],
+        [1    , 0, 1   ],
+        [1.43 , 1, 1.43]])
+```
+
+Now we have an image split up in X amount of pixel value windows, depending on the image size and the radius used. We can similary do the same for the output of the encoder. Create the same X amount of windows.
 
 We can sum all these windows and create a matrix with the same shape as the original image. Where each (i,j) location contains weights summed up for that (i,j) centered window. Now we just do an element wise multiplication between the layer of the encoder output and the newly generated matrix. This method works great, we can even do this batchwise across multiple images and we do this very efficiently, and this stays true to the paper.
 
