@@ -18,6 +18,7 @@ Reproduction is a very important task in the field of Deep Learning, and as it t
 
 W-Net uses two different datasets, they train the network using the PASCAL VOC2012 dataset and evaluate the network using the Berkeley Segmentation Database (BSDS 300 and BSDS 500).  The PASCAL VOC2012 dataset is a large visual object classes challenge which contains 11,530 images and 6,929 segmentations. BSDS300 and BSDS500 have 300 and 500 images including human-annotated segmentations ground truth. The images are divided into a training set of 200 images, and a test set of 100 images. The ground truth are Matlab files that are 2D matrices with the annotated labels, with multiple segmentations. The different segmentations for a single picture can be seen below.
 
+![Different ground truth segmentations](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentations.jpeg)
 
 
 ## The Model
@@ -237,9 +238,15 @@ We use opencv for resizing the segmentations with the following procedure:
 segment_truth_ods = cv2.resize(segment_truth, dsize=(224, 224), interpolation=cv2.INTER_NEAREST)
 ```
 We resize the image with nearest neighbor resampling, in this way we retain having similar labelling as before resizing.
-The benchmarks will include Segmentation Covering, Variation of information and Probabilistic Rand Index, these are thoroughly explained in the paper by Arbelaez et al. [^x4] which is cited in the paper, however an implementation of them was not found in the Github repository. There is benchmarking code available on the BSD website, but this meant the segmentations had to be reencoded into matlab. Since the benchmarking is a large part of the reproduction we decided to try implementing it ourselves. We will go over the implementation in the following sections and a full notebook can be found in the repository. 
+The benchmarks will include Segmentation Covering, Variation of information and Probabilistic Rand Index, these are thoroughly explained in the paper by Arbelaez et al. [^x4] which is cited in the paper, however an implementation of them was not found in the Github repository. There is benchmarking code available on the BSD website, but this meant the segmentations had to be reencoded into matlab. Since the benchmarking is a large part of the reproduction we decided to try implementing it ourselves. We will go over the implementation in the following sections and a full notebook can be found in the repository. We have some doubts about the correctness of these benchmarks, if one needs to be sure, they can use the benchmarking code from the Berkeley Segmentation Dataset, however the output of the segmentation need to be converted to .mat files first. 
 
 ### Segmentation Covering
+
+
+![Segment Overlap](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
+![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_coverings.png)
+
+The implementation in Python is as follows:
 
 ```
 def calculate_segmentation_covering(segmentation1, segmentation2):
@@ -268,7 +275,6 @@ def calculate_segmentation_covering(segmentation1, segmentation2):
         
     return (1 / N) * maxcoverings_sum
 ```
-
 Where the overlap is calculated by:
 
 ```
@@ -282,6 +288,10 @@ def calculate_overlap(r1, r2):
 ```
 
 ### Probabilistic Rand Index
+
+![Probabilistic Rand Index](https://raw.githubusercontent.com/AsWali/WNet/master/media/overlap.png)
+
+While this was the hardest benchmark to comprehend, we attempted to implement it. Since each pixel pair is considered, there is downscaling involved as computing this on large scale images would be insanely computationally intensive. This is how we implemented it in Python, although we have some doubts on whether this is correct. 
 
 ```
 import math
@@ -332,6 +342,10 @@ def calculate_probabilistic_rand_index(segmentation1, segmentation2):
 
 ### Variation of Information 
 
+![Variation of information](https://raw.githubusercontent.com/AsWali/WNet/master/media/soft_n_cut_loss.png)
+
+We implemented this in python using Scikit-learn and Scikit-image functions:
+
 ```
 import skimage.measure
 import sklearn.metrics
@@ -344,7 +358,9 @@ def calculate_variation_of_information(segmentation1, segmentation2):
     ret -= 2 * sklearn.metrics.mutual_info_score(segmentation1.flatten(), segmentation2.flatten())
     return ret
 ```
- 
+### Benchmarking Results
+
+We show the results of a model trained for a model with 400 epochs, 40 batches and a batch size of 5. 
 
 ## Reproduction Discussion
 
