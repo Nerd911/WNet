@@ -262,7 +262,7 @@ With this overlap, we calculate the segmentation covering with the following for
 
 ![Segmentation Covering](https://raw.githubusercontent.com/AsWali/WNet/master/media/segmentation_covering.png)
 
-Where N is the number of segments, R is a segment in segmentation S and |R| the size of this segmentation. The formula looks for the maximum segmentation covering and sums this for the final result, dividing over the number of pixels.
+Where N is the number of segments, R is a segment in segmentation S and \|R\| the size of this segmentation. The formula looks for the maximum segmentation covering and sums this for the final result, dividing over the number of pixels.
 
 The implementation in Python is as follows,
 Where the overlap is calculated by:
@@ -389,7 +389,7 @@ def calculate_variation_of_information(segmentation1, segmentation2):
 
 We show the results of a model trained for a model with 400 epochs, 40 batches and a batch size of 5. On the BSD500 test dataset, comparing to the W-Net model from the paper. For SC and PRI, higher scores are better. for VI, a lower score is better.
 
-| Method       | SC          |  PRI         |  VI         |
+| Method       | SC   |      |  PRI  |      |  VI  |      |
 |--------------|------|------|-------|------|------|------|
 |              | ODS  | OIS  | ODS   | OIS  | ODS  | OIS  |
 | WNet (paper) | 0.57 | 0.62 | 0.81  | 0.84 | 1.76 | 1.60 |
