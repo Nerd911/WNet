@@ -12,6 +12,9 @@ import numpy as np
 import time
 import datetime
 import torch
+from torch.utils.data import Dataset
+import rasterio
+import torch.nn.functional as F
 from torchvision import datasets, transforms
 from utils.org_soft_n_cut_loss import batch_soft_n_cut_loss
 from utils.soft_n_cut_loss import soft_n_cut_loss
@@ -37,6 +40,53 @@ parser.add_argument('--output_folder', metavar='of', default=None, type=str,
 
 softmax = nn.Softmax2d()
 criterionIdt = torch.nn.MSELoss()
+
+class CustomImageDataset(Dataset):
+    def __init__(self, img_path='../Data/Geotiff-large-area/grid.tif', label_path="../Data/mounds_centers.png", size = 256, transform=None, target_transform=None, stride = 50):
+        img = rasterio.open(img_path)
+        img = img.read()[0]
+        res_dic = {}
+        res_dic["grid"] = img #(img[:,:] - img.min())/(img.max() - img.min())
+        res_dic["gradient_0"] = np.gradient(res_dic["grid"][:,:],axis=0)[:,:]
+        res_dic["gradient_1"] = np.gradient(res_dic["grid"][:,:],axis=1)[:,:]
+        res_dic["slope"] = (np.arctan(np.sqrt(res_dic["gradient_0"]**2 + res_dic["gradient_1"]**2)))
+        img = np.stack([res_dic["gradient_0"], res_dic["gradient_1"], res_dic["slope"]], axis=-1)
+        self.img = torch.Tensor(img)
+        label = plt.imread(label_path)
+        label = label.sum(axis = -1 ) > 0
+        self.img_label = F.one_hot(torch.Tensor(label[:,:]).long())
+        self.transform = transform
+        self.target_transform = target_transform
+        self.size = size
+        self.stride = stride
+
+    def __len__(self):
+        height, length = self.img.shape[:2]
+        height -= self.size
+        height //= self.stride
+        length -= self.size
+        length //= self.stride
+        return height*length
+
+    def __getitem__(self, idx):
+        height, length = self.img.shape[:2]
+        height -= self.size
+        height //= self.stride
+        length -= self.size
+        length //= self.stride
+        idx1 = idx // height
+        idx1 *= self.stride
+        idx0 = idx % height
+        idx0 *= self.stride
+        image = self.img[idx0:(idx0+self.size), idx1:(idx1+self.size)]
+        label = self.img_label[idx0:(idx0+self.size), idx1:(idx1+self.size)]
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        print(image.shape)
+        print(label.shape)
+        return image.permute(2, 0, 1), label.permute(2, 0, 1)
 
 def train_op(model, optimizer, input, k, img_size, psi=0.5):
     enc = model(input, returns='enc')
@@ -92,7 +142,7 @@ def main():
     transform = transforms.Compose([transforms.Resize(img_size),
                                 transforms.ToTensor()])
 
-    dataset = datasets.ImageFolder(args.input_folder, transform=transform)
+    dataset = CustomImageDataset(img_path=args.input_folder, label_path=args.output_folder transform=transform)
 
     # Train 1 image set batch size=1 and set shuffle to False
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=True)
