@@ -42,9 +42,9 @@ softmax = nn.Softmax2d()
 criterionIdt = torch.nn.MSELoss()
 
 class CustomImageDataset(Dataset):
-    def __init__(self, img_path='../Data/Geotiff-large-area/grid.tif', label_path="../Data/mounds_centers.png", size = 256, transform=None, target_transform=None, stride = 50):
+    def __init__(self, img_path='../Data/Geotiff-large-area/grid.tif', label_path="../Data/mounds_centers.png", size = 224, transform=None, target_transform=None, stride = 50):
         img = rasterio.open(img_path)
-        img = img.read()[0]
+        img = img.read()[0][1200:]
         res_dic = {}
         res_dic["grid"] = img #(img[:,:] - img.min())/(img.max() - img.min())
         res_dic["gradient_0"] = np.gradient(res_dic["grid"][:,:],axis=0)[:,:]
@@ -52,7 +52,7 @@ class CustomImageDataset(Dataset):
         res_dic["slope"] = (np.arctan(np.sqrt(res_dic["gradient_0"]**2 + res_dic["gradient_1"]**2)))
         img = np.stack([res_dic["gradient_0"], res_dic["gradient_1"], res_dic["slope"]], axis=-1)
         self.img = torch.Tensor(img)
-        label = plt.imread(label_path)
+        label = plt.imread(label_path)[1200:]
         label = label.sum(axis = -1 ) > 0
         self.img_label = F.one_hot(torch.Tensor(label[:,:]).long())
         self.transform = transform
