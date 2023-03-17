@@ -147,9 +147,10 @@ def main():
     learning_rate = 0.003
     optimizer = torch.optim.SGD(wnet.parameters(), lr=learning_rate)
 
-    transform = transforms.Compose([transforms.Resize(img_size),
-                                transforms.ToTensor()])
+    # transform = transforms.Compose([transforms.Resize(img_size),
+    #                             transforms.ToTensor()])
 
+    transform=None
     dataset = CustomImageDataset(img_path=args.input_folder, label_path=args.output_folder, transform=transform)
 
     # Train 1 image set batch size=1 and set shuffle to False
