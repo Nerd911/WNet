@@ -92,8 +92,6 @@ class CustomImageDataset(Dataset):
             except:
                 label = label.numpy()
                 label = self.target_transform(label)
-        print(image.shape)
-        print(label.shape)
         return image.permute(2, 0, 1), label.permute(2, 0, 1)
 
 def train_op(model, optimizer, input, k, img_size, psi=0.5):
