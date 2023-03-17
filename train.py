@@ -81,9 +81,17 @@ class CustomImageDataset(Dataset):
         image = self.img[idx0:(idx0+self.size), idx1:(idx1+self.size)]
         label = self.img_label[idx0:(idx0+self.size), idx1:(idx1+self.size)]
         if self.transform:
-            image = self.transform(image)
+            try:
+                image = self.transform(image)
+            except:
+                image = image.numpy()
+                image = self.transform(image)
         if self.target_transform:
-            label = self.target_transform(label)
+            try:
+                label = self.target_transform(label)
+            except:
+                label = label.numpy()
+                label = self.target_transform(label)
         print(image.shape)
         print(label.shape)
         return image.permute(2, 0, 1), label.permute(2, 0, 1)
