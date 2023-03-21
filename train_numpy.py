@@ -146,7 +146,7 @@ def main():
     #                             transforms.ToTensor()])
 
     transform=None
-    dataset = CustomImageDataset(img_path=args.input_folder, label_path=args.output_folder, transform=transform)
+    dataset = NumpyDataset(img_path=args.input_folder, label_path=args.output_folder, transform=transform)
 
     # Train 1 image set batch size=1 and set shuffle to False
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=True)
