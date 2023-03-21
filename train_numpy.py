@@ -57,8 +57,8 @@ class NumpyDataset(Dataset):
             self.images = []
             self.labels = []
             for i in range(self.N):
-                img_name = f'test_img_{i}.npy'
-                label_name = f'test_label_{i}.png'
+                img_name = f'train_img_{i}.npy'
+                label_name = f'train_label_{i}.png'
                 with open(os.path.join(img_path, img_name), "rb") as f:
                     a = torch.Tensor(np.load(f))
                     self.images.append(a)
@@ -72,8 +72,8 @@ class NumpyDataset(Dataset):
         if self.images is not None:
             image, label = self.images[idx], self.labels[idx]
         else:
-            img_name = f'test_img_{idx}.npy'
-            label_name = f'test_label_{idx}.png'
+            img_name = f'train_img_{idx}.npy'
+            label_name = f'train_label_{idx}.png'
             with open(os.path.join(self.img_path, img_name), "rb") as f:
                 image = torch.Tensor(np.load(f))
             label = torch.Tensor(plt.imread(os.path.join(self.label_path, label_name)))
