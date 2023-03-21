@@ -7,6 +7,8 @@ Implementation of the W-Net unsupervised image segmentation architecture
 """
 
 import argparse
+import os
+
 import torch.nn as nn
 import numpy as np
 import time
@@ -41,45 +43,40 @@ parser.add_argument('--output_folder', metavar='of', default=None, type=str,
 softmax = nn.Softmax2d()
 criterionIdt = torch.nn.MSELoss()
 
-class CustomImageDataset(Dataset):
-    def __init__(self, img_path='../Data/Geotiff-large-area/grid.tif', label_path="../Data/mounds_centers.png", size = 224 , transform=None, target_transform=None, stride = 50):
-        img = rasterio.open(img_path)
-        img = img.read()[0][1200:]
-        res_dic = {}
-        res_dic["grid"] = img #(img[:,:] - img.min())/(img.max() - img.min())
-        res_dic["gradient_0"] = np.gradient(res_dic["grid"][:,:],axis=0)[:,:]
-        res_dic["gradient_1"] = np.gradient(res_dic["grid"][:,:],axis=1)[:,:]
-        res_dic["slope"] = (np.arctan(np.sqrt(res_dic["gradient_0"]**2 + res_dic["gradient_1"]**2)))
-        img = np.stack([res_dic["gradient_0"], res_dic["gradient_1"], res_dic["slope"]], axis=-1)
-        self.img = torch.Tensor(img)
-        label = plt.imread(label_path)[1200:]
-        label = label.sum(axis = -1 ) > 0
-        self.img_label = F.one_hot(torch.Tensor(label[:,:]).long())
+class NumpyDataset(Dataset):
+    def __init__(self, img_path='../Data/train_patches_numpy_pca/', label_path="../Data/train_labels_pca/", size = 224 , transform=None, target_transform=None, load_all = True):
         self.transform = transform
         self.target_transform = target_transform
         self.size = size
-        self.stride = stride
+        self.img_path = img_path
+        self.label_path = label_path
+        self.images = None
+        self.labels = None
+        self.N = len(os.listdir(img_path))
+        if load_all:
+            self.images = []
+            self.labels = []
+            for i in range(self.N):
+                img_name = f'test_img_{i}.npy'
+                label_name = f'test_label_{i}.png'
+                with open(os.path.join(img_path, img_name), "rb") as f:
+                    a = torch.Tensor(np.load(f))
+                    self.images.append(a)
+                a = torch.Tensor(plt.imread(os.path.join(label_path, label_name)))
+                self.labels.append(a)
 
     def __len__(self):
-        height, length = self.img.shape[:2]
-        height -= self.size
-        height //= self.stride
-        length -= self.size
-        length //= self.stride
-        return height*length
+        return self.N
 
     def __getitem__(self, idx):
-        height, length = self.img.shape[:2]
-        height -= self.size
-        height //= self.stride
-        length -= self.size
-        length //= self.stride
-        idx1 = idx // height
-        idx1 *= self.stride
-        idx0 = idx % height
-        idx0 *= self.stride
-        image = self.img[idx0:(idx0+self.size), idx1:(idx1+self.size)]
-        label = self.img_label[idx0:(idx0+self.size), idx1:(idx1+self.size)]
+        if self.images is not None:
+            image, label = self.images[idx], self.labels[idx]
+        else:
+            img_name = f'test_img_{idx}.npy'
+            label_name = f'test_label_{idx}.png'
+            with open(os.path.join(self.img_path, img_name), "rb") as f:
+                image = torch.Tensor(np.load(f))
+            label = torch.Tensor(plt.imread(os.path.join(self.label_path, label_name)))
         if self.transform:
             try:
                 image = self.transform(image)
