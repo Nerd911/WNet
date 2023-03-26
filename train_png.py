@@ -45,8 +45,8 @@ parser.add_argument('--batch_size', metavar='bs', default=10, type=int,
 softmax = nn.Softmax2d()
 criterionIdt = torch.nn.MSELoss()
 
-class NumpyDataset(Dataset):
-    def __init__(self, img_path='../Data/train_patches_numpy_pca/', label_path="../Data/train_labels_pca/", size = 224 , transform=None, target_transform=None, load_all = True):
+class PNGDataset(Dataset):
+    def __init__(self, img_path='../Data/train_patches_pca/', label_path="../Data/train_labels_pca/", size = 224 , transform=None, target_transform=None, load_all = True):
         self.transform = transform
         self.target_transform = target_transform
         self.size = size
@@ -59,11 +59,10 @@ class NumpyDataset(Dataset):
             self.images = []
             self.labels = []
             for i in range(self.N):
-                img_name = f'train_img_{i}.npy'
+                img_name = f'train_img_{i}.png'
                 label_name = f'train_label_{i}.png'
-                with open(os.path.join(img_path, img_name), "rb") as f:
-                    a = torch.Tensor(np.load(f))
-                    self.images.append(a)
+                a = torch.Tensor(plt.imread(os.path.join(img_path, img_name)))
+                self.images.append(a)
                 a = torch.Tensor(plt.imread(os.path.join(label_path, label_name)))
                 self.labels.append(a)
 
@@ -74,10 +73,9 @@ class NumpyDataset(Dataset):
         if self.images is not None:
             image, label = self.images[idx], self.labels[idx]
         else:
-            img_name = f'train_img_{idx}.npy'
+            img_name = f'train_img_{idx}.png'
             label_name = f'train_label_{idx}.png'
-            with open(os.path.join(self.img_path, img_name), "rb") as f:
-                image = torch.Tensor(np.load(f))
+            image = torch.Tensor(plt.imread(os.path.join(self.img_path, img_name)))
             label = torch.Tensor(plt.imread(os.path.join(self.label_path, label_name)))
         if self.transform:
             try:
