@@ -61,8 +61,12 @@ class PNGDataset(Dataset):
             for i in range(self.N):
                 img_name = f'train_img_{i}.png'
                 label_name = f'train_label_{i}.png'
-                a = torch.Tensor(plt.imread(os.path.join(img_path, img_name)))
-                self.images.append(a)
+                try:
+                    a = torch.Tensor(plt.imread(os.path.join(img_path, img_name)))
+                    self.images.append(a)
+                except:
+                    self.N -= 1
+                    continue
                 a = torch.Tensor(plt.imread(os.path.join(label_path, label_name)))
                 self.labels.append(a)
 
